@@ -203,6 +203,7 @@ SELECT REPLACE(EMAIL, 'kh.or.kr', 'gmail.com'),
        REPLACE(EMAIL, '@kh.or.kr', '')
 FROM EMPLOYEE;
 
+--------------------------------------------------------
 
 /*
     <숫자 처리 함수>
@@ -273,6 +274,7 @@ SELECT TRUNC(456.789, 0) FROM DUAL; -- 456
 SELECT TRUNC(456.789, 1) FROM DUAL; -- 456.7   소숫점 첫째자리에서 반올림
 SELECT TRUNC(456.789, -1) FROM DUAL; -- 450   일의 자리에서 반올림
 
+--------------------------------------------------------
 
 /*
     <날짜 처리 함수>
@@ -364,6 +366,7 @@ SELECT EMP_NAME AS "직원명",
 FROM EMPLOYEE
 ORDER BY HIRE_DATE;
 
+--------------------------------------------------------
 
 /*
     <형 변환 함수>
@@ -498,6 +501,7 @@ FROM EMPLOYEE
 WHERE EMP_ID > 210; -- 숫자로 적어도 문자로 자동형변환이 된다.(상황에 따라 자동형변환 가능)
 --WHERE EMP_ID > '210';
 
+--------------------------------------------------------
 
 /*
     <NULL 처리 함수>
@@ -540,6 +544,8 @@ SELECT NULLIF(123, '123') FROM DUAL; -- 데이터 타입이 달라서 오류
 SELECT NULLIF('123', '123') FROM DUAL; -- NULL
 SELECT NULLIF('123', '456') FROM DUAL; -- 123
 
+
+--------------------------------------------------------
 
 /*
     <선택 함수>
@@ -633,3 +639,68 @@ WHERE SUBSTR(EMP_NO,8,1) IN ('2','4');
 SELECT TO_CHAR(SUM(SALARY*12), 'FML999,999,999') AS "연봉 합계"
 FROM EMPLOYEE
 WHERE DEPT_CODE = 'D5';
+
+
+/*
+    2) AVG : 컬럼 값들의 평균을 반환하는 함수
+       AVG(NUMBER 타입의 컬럼)
+*/
+-- EMPLOYEE 테이블에서 전체 사원의 급여 평균
+SELECT TO_CHAR(ROUND(AVG(SALARY)), '9,999,999') AS "급여 평균"
+FROM EMPLOYEE;
+
+-- EMPLOYEE 테이블에서 전체 사원의 보너스 평균 조회
+SELECT ROUND(AVG(NVL(BONUS,0)),2) AS "보너스 평균"
+FROM EMPLOYEE;
+
+
+/*
+    3) MIN / MAX 함수
+       MIN/MAX(모든 타입의 컬럼)
+       MIN : 컬럼 값들 중에 가장 작은 값을 반환하는 함수
+       MAX : 컬럼 값들 중에 가장 큰 값을 반환하는 함수
+       문자들은 오름차순으로 생각해서 가장 위의 값과 밑의 값이라고 생각하면된다. 영문 : A->Z, 한글 : ㄱ->ㅎ (NULL값은 제외)
+*/
+SELECT MIN(SALARY), MAX(SALARY),
+       MIN(EMP_NAME), MAX(EMP_NAME), -- ORDER BY와 동일하게 오름차순으로 생각해서 가장 위에 있는값, 가장 밑에 있는 값으로 추출. 한글이니까 ㄱ 과 ㅎ이다.
+       MIN(HIRE_DATE), MAX(HIRE_DATE)
+FROM EMPLOYEE;
+
+
+/*
+    4) COUNT : 조회된 행의 개수를 반환하는 함수
+       COUNT(* | 컬럼명 | DINSTINCT 컬럼명)
+*/    
+-- COUNT(*)은 조회 결과에 해당하는 모든 행 개수를 반환한다.
+SELECT COUNT(*)
+FROM EMPLOYEE;
+
+-- EMPLOYEE 테이블에서 남자 사원의 수를 조회
+SELECT COUNT(*)
+FROM EMPLOYEE
+WHERE SUBSTR(EMP_NO,8,1) IN ('1','3');
+
+-- COUNT(컬럼명)은 제시한 컬럼 값이 NULL이 아닌 행의 개수를 반환한다.
+SELECT COUNT(DEPT_CODE)
+FROM EMPLOYEE;
+
+-- EMPLOYEE 테이블에서 보너스를 받는 직원의 수를 조회
+SELECT COUNT(*)
+FROM EMPLOYEE
+WHERE BONUS IS NOT NULL;
+
+SELECT COUNT(BONUS)
+FROM EMPLOYEE;
+
+-- EMPLOYEE 테이블에서 퇴사한 직원의 수를 조회
+SELECT COUNT(ENT_DATE)
+FROM EMPLOYEE;
+
+-- COUNT(DISTINCT 컬럼명)은 해당 컬럼 값의 중복을 제거한 행의 개수를 반환한다.
+-- EMPLOYEE 테이블에서 현재 사원들이 속해있는 부서의 수를 조회
+SELECT COUNT(DISTINCT DEPT_CODE)
+FROM EMPLOYEE;
+
+-- EMPLOYEE 테이블에서 현재 사원들이 분포되어있는 직급의 수를 조회
+SELECT COUNT(DISTINCT JOB_CODE)
+FROM EMPLOYEE;
