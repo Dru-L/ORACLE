@@ -421,7 +421,6 @@ FROM EMPLOYEE
 WHERE (NVL(DEPT_CODE,'부서 없음'), SALARY) IN (('D1', 1380000), ('D2', 1550000), ('D5', 1800000), ('D6', 2800000),('D8', 2000000),('D9', 3700000),('부서 없음', 2320000))
 ORDER BY DEPT_CODE;
 
-
 -- 다중행 다중열 서브 쿼리를 사용해서 조회
 SELECT EMP_ID, EMP_NAME, NVL(DEPT_CODE,'부서 없음'), SALARY
 FROM EMPLOYEE
@@ -431,3 +430,98 @@ WHERE (NVL(DEPT_CODE,'부서 없음'), SALARY) IN (
     GROUP BY DEPT_CODE
 )
 ORDER BY DEPT_CODE;
+
+
+/*
+    <인라인 뷰>
+      FROM 절에 서브쿼리를 제시하고, 서브 쿼리를 수행한 결과를 테이블 대신에 사용한다.
+*/
+-- 전 직원 중 급여가 가장 높은 상위 5명 순위, 이름, 급여 조회
+-- ROWNUM : 오라클에서 제공하는 컬럼, 조회된 순서대로 1부터 순번을 부여하는 칼럼이다.
+SELECT ROWNUM, EMP_NAME, SALARY
+FROM EMPLOYEE
+ORDER BY SALARY DESC;
+-- 이미 순번이 정해진 다음에 정렬이 되었다.
+-- FROM -> SELECT(순번이 정해진다.ROWNUM) -> ORDER BY
+
+SELECT ROWNUM, EMP_NAME, SALARY
+FROM(
+    SELECT EMP_NAME, SALARY
+    FROM EMPLOYEE
+    ORDER BY SALARY DESC  -- FROM절 안에 서브쿼리를 사용함(인라인 뷰)으로써 EMP_NAME, SALARY만 접근 가능한 가상의 컬럼 생성
+)
+WHERE ROWNUM <= 5;
+
+SELECT ROWNUM, E.EMP_NAME, E.SALARY
+--SELECT ROWNUM, E.*  -- 별칭 가능
+FROM(
+    SELECT EMP_NAME, SALARY
+    FROM EMPLOYEE
+    ORDER BY SALARY DESC  -- FROM절 안에 서브쿼리를 사용함(인라인 뷰)으로써 EMP_NAME, SALARY만 접근 가능한 가상의 컬럼 생성
+) E
+WHERE ROWNUM <= 5;
+
+-- 부서별 평균 급여가 높은 3개의 부서의 부서 코드, 평균 급여 조회
+-- 인라인 뷰를 사용하는 방법
+SELECT ROWNUM, "부서 코드", "평균 급여"
+--SELECT ROWNUM, E.*
+FROM(
+    SELECT NVL(DEPT_CODE,'부서 없음') AS "부서 코드",
+           FLOOR(AVG(NVL(SALARY,0))) AS "평균 급여"
+    FROM EMPLOYEE
+    GROUP BY DEPT_CODE
+    ORDER BY  AVG(NVL(SALARY,0)) DESC
+) E
+WHERE ROWNUM <= 3;
+
+-- WITH를 사용하는 방법 (WITH는 ;전까지 사용 가능)
+WITH TOPN_SAL AS (
+    SELECT NVL(DEPT_CODE,'부서 없음') AS "부서 코드",
+           FLOOR(AVG(NVL(SALARY,0))) AS "평균 급여"
+    FROM EMPLOYEE
+    GROUP BY DEPT_CODE
+    ORDER BY  AVG(NVL(SALARY,0)) DESC
+)
+
+SELECT ROWNUM, "부서 코드", "평균 급여"
+FROM TOPN_SAL
+WHERE ROWNUM <= 3;
+
+
+/*
+    <RANK 함수>
+      데이터의 순위를 알아내는 함수이다.
+      RANK() OVER(정렬기준) / DENSE RANK() OVER(정렬기준)
+*/
+-- 사원별 급여가 높은 순서대로 순위 매겨서 순위, 직원명, 급여 조회
+-- RANK() OVER 함수는 동일한 순위가 있는 경우 다음 등수를 건너뛰고 순위를 계산한다.
+-- 공동 19위 2명 뒤에 순위는 21위
+SELECT RANK() OVER(ORDER BY SALARY DESC)AS "순위",
+       EMP_NAME AS "직원명",
+       SALARY AS "급여"
+FROM EMPLOYEE;
+
+-- DENSE_RANK() OVER 함수는 동일한 순위가 있어도 다음 등수를 건너뛰지 않고 순위를 계산한다.
+-- 공동 19위 2명 뒤에 순위는 20위
+SELECT DENSE_RANK() OVER(ORDER BY SALARY DESC)AS "순위",
+       EMP_NAME AS "직원명",
+       SALARY AS "급여"
+FROM EMPLOYEE;
+
+-- 상위 5명만 조회
+SELECT RANK() OVER(ORDER BY SALARY DESC)AS "순위",
+       EMP_NAME AS "직원명",
+       SALARY AS "급여"
+FROM EMPLOYEE
+-- RANK 함수는 WHERE 절에서 사용할 수 없다.
+WHERE RANK() OVER(ORDER BY SALARY DESC) <= 5;
+
+-- 이때 인라인뷰를 사용한다.
+SELECT "순위", "직원명", "급여"
+FROM (
+    SELECT RANK() OVER(ORDER BY SALARY DESC)AS "순위",
+           EMP_NAME AS "직원명",
+           SALARY AS "급여"
+    FROM EMPLOYEE
+)
+WHERE "순위" <= 5;
