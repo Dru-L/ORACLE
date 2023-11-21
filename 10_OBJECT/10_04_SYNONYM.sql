@@ -1,0 +1,28 @@
+/*
+    < SYNONYM >
+        SYNONYM은 오라클에서 제공하는 객체로 데이터베이스 객체에 별칭을 생성한다.
+*/
+-- 1. 비공개 SYNONYM 생성
+-- 관리자 계정으로 KH 계정에 SYNONYM 생성 권한을 부여
+GRANT CREATE SYNONYM TO C##KH;
+
+-- EMPOLYEE 테이블에 비공개 SYNONYM 생성
+CREATE SYNONYM EMP FOR EMPLOYEE;
+
+SELECT * FROM EMPLOYEE;
+SELECT * FROM EMP;
+
+-- 비공개 SYNONYM 삭제
+DROP SYNONYM EMP;
+
+-- 2. 공개 SYNONYM
+-- 관리자 계정으로 접속 후 KH 계정의 DEPARTMENT 테이블에 공개 SYNONYM 생성
+CREATE PUBLIC SYNONYM DEPT FOR C##KH.DEPARTMENT;
+
+-- 관리자 계정으로 SAMPLE 계정에 C##KH.DEPARTMENT 조회 권한 부여
+GRANT SELECT ON C##KH.DEPARTMENT TO C##SAMPLE;
+
+SELECT * FROM DEPT;
+
+-- 공개 SYNONYM 삭제
+DROP PUBLIC SYNONYM DEPT;

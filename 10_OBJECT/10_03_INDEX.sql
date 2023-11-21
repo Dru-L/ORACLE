@@ -1,0 +1,67 @@
+/*
+    < INDEX >
+        INDEXT는 오라클에서 제공하는 객체이다.
+        SQL 명령문의 처리 속도를 향상시키기 위해서 행들의 위치 정보를 가지고 있다.
+*/
+SELECT ROWID, -- 데이터베이스에 저장되어 있는 데이터의 주소
+       EMP_ID, 
+       EMP_NAME
+FROM EMPLOYEE;
+
+SELECT *
+FROM TB_STUDENT
+WHERE STUDENT_NAME = '황효종'; -- F10 누르면 정보 보여짐
+
+SELECT *
+FROM TB_STUDENT
+WHERE STUDENT_NO = 'A511332';
+
+-- 사용자가 정의한 인덱스와 인덱스가 설정된 컬럼에 정보를 보여주는 뷰 테이블이다.
+SELECT * FROM USER_INDEXES; 
+SELECT * FROM USER_IND_COLUMNS;
+
+-- 고유 인덱스 생성 = UNIQUE INDEX
+CREATE UNIQUE INDEX IDX_STUDENT_SSN
+ON TB_STUDENT(STUDENT_SSN);
+
+-- 중복된 값을 갖는 컬럼으로 고유 인덱스를 생성 시 에러 발생
+CREATE UNIQUE INDEX IDX_DEPARTMENT_NO
+ON TB_STUDENT(DEPARTMENT_NO);
+
+SELECT STUDENT_SSN, ROWID
+FROM TB_STUDENT;
+
+-- 비고유 인덱스 생성  = NONUNIQUE INDEX
+CREATE INDEX IDX_STUDENT_NAME
+ON TB_STUDENT(STUDENT_NAME);
+
+SELECT * 
+FROM TB_STUDENT -- F10 눌러서 계획설명 보기 
+WHERE STUDENT_NAME = '황효종'; -- 인덱스 없을때 COST 5 , 인덱스 있을때 COST 2
+
+SELECT *
+FROM TB_STUDENT
+WHERE STUDENT_NAME = '최효정'; 
+
+-- 결합 인덱스 생성 (여러개를 합쳐서 인덱스를 만드는 것)
+-- TB_GRADE 테이블에 설정되어 있는 인덱스 사용 
+SELECT *
+FROM TB_GRADE
+WHERE TERM_NO = '200301' 
+AND STUDENT_NO = 'A241056'
+AND CLASS_NO = 'C1753800';
+
+-- 일부의 컬럼만 사용해서 검색을 하면 인덱스 사용하지 않음
+SELECT *
+FROM TB_GRADE
+WHERE STUDENT_NO = 'A241056'
+AND CLASS_NO = 'C1753800'; -- FULL 스캔
+
+CREATE INDEX IDX_STUDENT_CLASS
+ON TB_GRADE(STUDENT_NO, CLASS_NO); -- 비고유 인덱스 & 결합 인덱스 = COMPOSITE INDEX
+-- 비고유 인덱스는 중복이 가능하다.
+
+-- INDEX 삭제
+DROP INDEX IDX_STUDENT_SSN;
+DROP INDEX IDX_STUDENT_NAME;
+DROP INDEX IDX_STUDENT_CLASS;
